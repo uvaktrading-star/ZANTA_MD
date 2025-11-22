@@ -87,7 +87,7 @@ async function connectToWA() {
     } else if (connection === 'open') {
       console.log('✅ zanta-MD connected to WhatsApp');
 
-      const up = `zanta-MD connected ✅\n\nPREFIX: ${prefix}`;
+      const up = `ZANTA-MD connected ✅\n\nPREFIX: ${prefix}`;
       await zanta.sendMessage(ownerNumber[0] + "@s.whatsapp.net", {
         image: { url: `https://github.com/zanta-MD/zanta-MD/blob/main/images/zanta-MD.png?raw=true` },
         caption: up
@@ -179,7 +179,7 @@ async function connectToWA() {
 ensureSessionFile();
 
 app.get("/", (req, res) => {
-  res.send("Hey, zanta-MD started✅");
+  res.send("Hey, ZANTA-MD started✅");
 });
 
 app.listen(port, () => console.log(`Server listening on http://localhost:${port}`));
