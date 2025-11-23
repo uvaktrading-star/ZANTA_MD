@@ -1,10 +1,11 @@
 const { cmd } = require("../command");
+const axios = require('axios'); // Media Download සඳහා axios library එක අවශ්‍යයි.
 
 cmd(
     {
         pattern: "save",
         react: "✅", 
-        desc: "Resend Status or One-Time View Media (Final FIX: Using sendMessage)",
+        desc: "Resend Status or One-Time View Media (Buffer FIX)",
         category: "general",
         filename: __filename,
     },
@@ -23,7 +24,6 @@ cmd(
                 return reply("*කරුණාකර Status/Media Message එකකට reply කරන්න!* 🧐");
             }
 
-            // Media Data එක ලබා ගැනීම (පෙර log එක අනුව)
             let mediaObject = quoted.quoted || quoted.fakeObj;
             let saveCaption = "*💾 Saved and Resent!*";
             
@@ -35,28 +35,40 @@ cmd(
             const messageType = Object.keys(mediaObject)[0];
             const mediaData = mediaObject[messageType];
             
-            // 2. Message Options සැකසීම (zanta.sendMessage සඳහා)
+            // 2. Download URL එක ලබා ගැනීම
+            const mediaUrl = mediaData.url || mediaData.directPath; 
+
+            if (!mediaUrl) {
+                 return reply("*⚠️ Media Download කිරීමට URL එකක් සොයාගත නොහැක.*");
+            }
+            
+            reply("*Media File එක Download කරමින්...* ⏳");
+
+            // 3. Media File එක Download කර Buffer එකක් ලෙස ලබා ගැනීම
+            const mediaResponse = await axios.get(mediaUrl, { responseType: 'arraybuffer' });
+            const mediaBuffer = mediaResponse.data;
+            
+            // 4. Message Options සැකසීම (Buffer භාවිතයෙන්)
             let messageOptions = {};
             
-            // 3. Media Type එකට අනුව Options සකස් කිරීම
             if (messageType === 'imageMessage') {
-                messageOptions = { image: { url: mediaData.url || mediaData.directPath }, caption: saveCaption };
+                messageOptions = { image: mediaBuffer, caption: saveCaption };
             } else if (messageType === 'videoMessage') {
-                messageOptions = { video: { url: mediaData.url || mediaData.directPath }, caption: saveCaption };
+                messageOptions = { video: mediaBuffer, caption: saveCaption };
             } else if (messageType === 'documentMessage') {
-                messageOptions = { document: { url: mediaData.url || mediaData.directPath }, fileName: mediaData.fileName, mimetype: mediaData.mimetype };
+                messageOptions = { document: mediaBuffer, fileName: mediaData.fileName, mimetype: mediaData.mimetype, caption: saveCaption };
             } else {
-                 return reply("*⚠️ හඳුනාගත් Media Type එක යැවීමට සහය නොදක්වයි. (Image, Video, Document පමණි)*");
+                 return reply("*⚠️ හඳුනාගත් Media Type එක යැවීමට සහය නොදක්වයි.*");
             }
 
-            // 4. Message යැවීම (zanta.sendMessage භාවිතයෙන්)
+            // 5. Message යැවීම
             await zanta.sendMessage(from, messageOptions, { quoted: mek });
 
             return reply("*වැඩේ හරි 🙃✅*");
 
         } catch (e) {
             console.error(e);
-            reply(`*Error saving media:* ${e.message || e}`);
+            reply(`*Error downloading or sending media:* ${e.message || e}`);
         }
     }
 );
