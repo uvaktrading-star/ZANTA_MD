@@ -11,7 +11,7 @@ cmd(
     filename: __filename,
   },
   async (
-    danuwa,
+    zanta,
     mek,
     m,
     {
@@ -62,7 +62,7 @@ cmd(
 👻 *Quality*: ${qualityText}
 `;
 
-      await danuwa.sendMessage(
+      await zanta.sendMessage(
         from,
         {
           image: {
@@ -73,7 +73,7 @@ cmd(
         { quoted: mek }
       );
 
-      await danuwa.sendMessage(
+      await zanta.sendMessage(
         from,
         {
           video: { url: bestQualityUrl },
