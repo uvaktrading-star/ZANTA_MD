@@ -151,7 +151,7 @@ async function connectToWA() {
             const quotedMessage = mek.quoted.text; // Message the user is replying to
             const replyBody = body.trim(); // The content of the user's reply (e.g., '1')
 
-            // The Menu message header must contain this text: "Choose a menu option by replying with the number"
+            // Magic Text Check: The Menu message header must contain this text
             if (quotedMessage && quotedMessage.includes("Choose a menu option by replying with the number")) {
                 
                 // If the reply contains only a number (e.g., '1', '2')
@@ -168,6 +168,11 @@ async function connectToWA() {
             // --- UPDATED LOGIC TO HANDLE MENU REPLY ---
             let commandToExecute = isCmd ? commandName : "menu"; 
             let queryArguments = isCmd ? q : replyNumber; 
+            
+            // 🚨 FINAL CRITICAL FIX: Update the 'm' object for the plugin to read
+            if (replyToMenu) {
+                m.q = replyNumber; 
+            }
             // --- END UPDATED LOGIC ---
             
             const cmd = commands.find((c) => c.pattern === commandToExecute || (c.alias && c.alias.includes(commandToExecute)));
