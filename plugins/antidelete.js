@@ -1,41 +1,42 @@
-// This file should be placed in the folder where your event listeners/plugins are loaded.
-// It relies on 'global.messages' cache provided by the ZANTA_MD core.
-
+// Antidelete Logic එකට zanta object එක index.js එකේ Plugin Loader එක මඟින් ලැබිය යුතුයි
 module.exports = zanta => {
-  // Baileys 'messages.delete' event listener
-  zanta.on('messages.delete', async (messageData) => {
+  
+  // 👈 Baileys 'messages.delete' Event Listener එක නිවැරදි කර ඇත
+  zanta.ev.on('messages.delete', async (messageData) => { 
     try {
       // 1. Basic checks
       if (!messageData || !messageData.keys || messageData.keys.length === 0) return;
       
-      const deleteKey = messageData.keys[0]; 
-      
-      // Ignore if the bot deleted its own message
-      if (deleteKey.fromMe) return;
+      const deleteKey = messageData.keys[0];  
+      // Bot එක delete කළ message නම් නොසලකා හරියි
+      if (deleteKey.fromMe) return; 
 
-      // 2. Fetch deleted message from cache
-      // The message ID from the key is used to retrieve data from the global cache
-      const deletedMessage = global.messages.get(deleteKey.id); 
+      // 2. Fetch deleted message from cache (zanta.messages වෙතින් ලබා ගනී)
+      const deletedMessage = zanta.messages.get(deleteKey.id);
       
       if (!deletedMessage) {
-        // If the message wasn't in the cache, we can't recover the content.
-        console.log("AntiDelete: Deleted message not found in cache (probably sent before bot started).");
-        return;
+        // Message එක cache එකේ නොතිබුනහොත් (උදා: Bot එක start කිරීමට පෙර යැවූ ඒවා)
+        return; 
       }
 
       // 3. Extract sender and chat info
       const isGroup = deleteKey.remoteJid.endsWith('@g.us');
-      // The person who sent the original message
-      const senderJid = deletedMessage.key.participant || deletedMessage.key.remoteJid; 
+      const senderJid = deletedMessage.key.participant || deletedMessage.key.remoteJid;  
       const senderNumber = senderJid.replace('@s.whatsapp.net', '');
 
       let text = "Message Content Not Found"; // Default text
 
-      // 4. Extract Message Content (Similar to ZANTA_MD's message processing logic)
+      // 4. Extract Message Content
       if (deletedMessage.message) {
-        const messageType = Object.keys(deletedMessage.message)[0];
-        const content = deletedMessage.message[messageType];
+        // Ephemeral Message (View Once/Disappearing) Check
+        const effectiveMessage = deletedMessage.message.ephemeralMessage 
+                                 ? deletedMessage.message.ephemeralMessage.message 
+                                 : deletedMessage.message;
+                                 
+        const messageType = Object.keys(effectiveMessage)[0];
+        const content = effectiveMessage[messageType];
         
+        // Message Type එක අනුව Content extract කිරීම
         switch (messageType) {
           case 'conversation':
           case 'extendedTextMessage':
@@ -62,9 +63,14 @@ module.exports = zanta => {
           case 'audioMessage':
             text = "AUDIO 🎤";
             break;
-          // Add more cases for other message types (e.g., location, contact) if needed.
+          case 'contactMessage':
+            text = `CONTACT 📞: ${content.displayName || 'No Name'}`;
+            break;
+          case 'locationMessage':
+            text = `LOCATION 📍`;
+            break;
           default:
-            text = `UNSUPPORTED TYPE: ${messageType}`;
+            text = `TYPE: ${messageType}`;
         }
       }
       
@@ -73,7 +79,6 @@ module.exports = zanta => {
 *🚫 MESSAGE DELETED!*
 *👤 Sender:* @${senderJid.split('@')[0]}
 *📱 Number:* ${senderNumber}
-*💬 Chat Type:* ${isGroup ? 'Group Chat' : 'Private Chat'}
 *🗑️ Deleted Content:*
 --------------------------------
 ${text}
@@ -85,7 +90,11 @@ ${text}
         {
           text: deleteNotification,
           mentions: [senderJid] // Mention the user who deleted the message
-        }
+        }, 
+        // ❌ Note: Deleted media messages (photos/videos) cannot be resent easily 
+        // using just the quoted message object without downloading and re-uploading the file.
+        // We will only quote the message text for simplicity.
+        { quoted: deletedMessage } 
       );
 
     } catch (error) {
