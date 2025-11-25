@@ -43,7 +43,9 @@ async function ensureSessionFile() {
 
         try {
             // 💡 ඔබගේ Short Session ID එක Base64 Session JSON බවට පත් කරන API URL එක
-            const API_URL = `https://api.samuraibot.xyz/api/session/${sessionIdKey}`;
+            // ...
+            const API_URL = `https://session.samurai-md.xyz/api/session/${sessionIdKey}`; 
+            // ...
             
             console.log(`Fetching session from API: ${API_URL}`);
             
