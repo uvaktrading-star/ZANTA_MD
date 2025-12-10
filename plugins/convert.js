@@ -25,7 +25,7 @@ cmd(
     pattern: "toimg",
     alias: ["tovid"],
     react: "🖼️",
-    desc: "Converts a sticker (image or video) back to its original media format.",
+    desc: "Converts sticker to img",
     category: "convert",
     filename: __filename,
   },
@@ -73,7 +73,7 @@ cmd(
     pattern: "s",
     alias: ["sticker", "st"],
     react: "🌟",
-    desc: "Converts a replied image or video into a sticker.",
+    desc: "Converts a sticker.",
     category: "convert",
     filename: __filename,
   },
@@ -109,7 +109,7 @@ cmd(
     pattern: "tomp3",
     alias: ["toaudio"],
     react: "🎶",
-    desc: "Converts a replied video into an MP3 audio file.",
+    desc: "Converts video to mp3.",
     category: "convert",
     filename: __filename,
   },
@@ -180,21 +180,3 @@ cmd(
   }
 );
 
-
-// // --- 4. TEXT to LOGO (logo) - Temporarily Commented Out ---
-// /*
-// cmd(
-//   {
-//     pattern: "logo",
-//     react: "🎨",
-//     desc: "Creates a simple text logo using an external API.",
-//     category: "convert",
-//     filename: __filename,
-//   },
-//   async (zanta, mek, m, { from, reply, q }) => {
-//     // IMPORTANT: This command is commented out because it requires a valid API URL and Key.
-//     // Uncomment and update the 'logoApiUrl' with a working API before using.
-//     return reply("*Logo command is temporarily disabled. Please update the API key.*");
-//   }
-// );
-// */
