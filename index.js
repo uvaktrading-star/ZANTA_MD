@@ -226,6 +226,57 @@ const mek = messages[0];
         const from = fromJidRaw ? jidNormalizedUser(fromJidRaw) : null;
         if (!from) return;
 
+
+// 🟢 STATUS AUTO-SEEN & REACT LOGIC
+// Baileys හි Status Updates සඳහා නිල JID: status@broadcast
+const isStatusUpdate = mek.key.remoteJid === 'status@broadcast';
+const isMyStatus = mek.key.fromMe; 
+
+if (isStatusUpdate && !isMyStatus) {
+    // 💡 Debugging: Status එකක් ලැබුණු බව තහවුරු කරයි
+    console.log(`[STATUS DETECTED] New Status from: ${mek.key.participant || 'Unknown'}. Config React: ${config.AUTO_STATUS_REACT}`); 
+
+    // Status Logic ක්‍රියාත්මක වන්නේ AUTO_STATUS_REACT enabled නම් පමණි
+    if (config.AUTO_STATUS_REACT) {
+
+        // Status Key එක සකස් කිරීම - Read/React සඳහා participant අනිවාර්ය වේ.
+        const statusKey = {
+            remoteJid: mek.key.remoteJid,
+            id: mek.key.id,
+            participant: mek.key.participant, // Status එක දැමූ පුද්ගලයාගේ JID එක
+        };
+
+        // 1. Status Seen (Mark as read) - 500ms ප්‍රමාදය Status Read කිරීමට අත්‍යවශ්‍යයි
+        await sleep(500); 
+        await danuwa.readMessages([statusKey]);
+        console.log(`✅ Status viewed: ${statusKey.id}`);
+
+        // 2. Status Auto Reaction (Heart ❤️)
+        await sleep(100); 
+
+        // 🚨 FINAL REACTION FIX: Reaction එක Status එක දැමූ පුද්ගලයාගේ Private JID එකට යැවීම
+        await danuwa.sendMessage(statusKey.participant, { 
+            react: {
+                text: '❤️', // Heart emoji
+                // Key Structure එක පැහැදිලිව සඳහන් කිරීම
+                key: {
+                    remoteJid: statusKey.remoteJid, // status@broadcast
+                    id: statusKey.id,
+                    participant: statusKey.participant,
+                    fromMe: false, // මෙය අනෙක් පුද්ගලයාගේ Status එකක් නිසා false විය යුතුයි
+                }
+            }
+        });
+        console.log(`✅ Status reacted with ❤️ to: ${statusKey.participant}`);
+    } else {
+        console.log(`[STATUS SKIP] AUTO_STATUS_REACT is disabled in config.`);
+    }
+
+    // Status message process කිරීමෙන් පසු, අමතර Chat Logic සඳහා යැවීම නවත්වයි
+    return; 
+}
+// ---------------------------------------------------------------------
+
 // 🚨 PRESENCE UPDATE LOGIC: ALWAYS_ONLINE = true නම්, බලහත්කාරයෙන් Online පෙන්වයි.
 if (config.ALWAYS_ONLINE) {
     // 🌟 ස්ථිර Online Fix එක: කෙටි ප්‍රමාදයන් සහිතව Available status කිහිපයක් යවයි.
