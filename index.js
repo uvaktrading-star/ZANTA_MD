@@ -129,7 +129,7 @@ async function connectToWA() {
             const up = `ZANTA-MD connected ✅\n\nPREFIX: ${prefix}`;
             await danuwa.sendMessage(ownerNumber[0] + "@s.whatsapp.net", {
                 image: {
-                    url: `https://github.com/Akashkavindu/ZANTA_MD/blob/main/images/ChatGPT%20Image%20Nov%2021,%202025,%2001_21_32%20AM.png?raw=true`,
+                    url: `https://github.com/Akashkavindu/ZANTA_MD/blob/main/images/alive-new.jpg?raw=true`,
                 },
                 caption: up,
             });
