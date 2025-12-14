@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://telegra.ph/file/18a24c251410493836d54.jpg" alt="ZANTA-MD Logo" width="150" height="150"/>
+  <img src="[https://telegra.ph/file/18a24c251410493836d54.jpg](https://github.com/Akashkavindu/ZANTA_MD/blob/main/images/alive-new.jpg?raw=true)" alt="ZANTA-MD Logo" width="150" height="150"/>
   <h1>👑 ZANTA-MD</h1>
   <h3>The Advanced WhatsApp Multi-Device Bot</h3>
 </div>
@@ -27,14 +27,6 @@
 | **WhatsApp Support** | +94 74 340 4814 (Owner Number) |
 | **GitHub Repository** | [Akashkavindu/ZANTA_MD](https://github.com/Akashkavindu/ZANTA_MD) |
 | **Current Status** | 🟢 Active and Multi-Device Compatible |
-
----
-
-## 🖼️ Bot Image Example
-
-මෙය ZANTA-MD Bot එක ක්‍රියාත්මක වන ආකාරය දැක්වෙන උදාහරණ රූපයකි.
-
-****
 
 ---
 
