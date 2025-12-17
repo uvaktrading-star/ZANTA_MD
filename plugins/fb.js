@@ -16,7 +16,7 @@ cmd({
         if (!fbRegex.test(q)) return reply("☹️ *ලින්ක් එක වැරදියි.*");
 
         const currentBotName = global.CURRENT_BOT_SETTINGS.botName;
-        const loadingDesc = `╭━─━─━─━─━─━──━╮\n┃ *${currentBotName} FB Downloader*\n╰━─━─━─━─━─━──━╯\n\n⏳ *Status:* Downloading your video...`;
+        const loadingDesc = `╭━─━─━─━─━─━──━╮\n┃ *${currentBotName} FB Downloader*\n╰━─━─━─━─━─━──━╯\n\n⏳ *Waiting for download...*`;
 
         // 1. මුලින්ම Logo එක සහ "Downloading" Caption එක සහිත පණිවිඩය යවයි
         const sentMsg = await zanta.sendMessage(from, {
@@ -25,7 +25,7 @@ cmd({
         }, { quoted: mek });
 
         const result = await getFbVideoInfo(q);
-        
+
         if (!result || (!result.sd && !result.hd)) {
             // අසාර්ථක වුවහොත් පණිවිඩය Edit කරයි
             return await zanta.sendMessage(from, { 
@@ -39,7 +39,7 @@ cmd({
 
         // 2. බාගත කිරීම අවසන් වූ පසු එම Image එකේම Caption එක Edit කිරීම
         const successDesc = `╭━─━─━─━─━─━──━╮\n┃ *${currentBotName} FB Downloader*\n╰━─━─━─━─━─━──━╯\n\n✅ *Status:* Download Completed!\n👻 *Quality:* ${quality}`;
-        
+
         await zanta.sendMessage(from, { 
             text: successDesc, 
             edit: sentMsg.key 
