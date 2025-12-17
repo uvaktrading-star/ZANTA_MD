@@ -17,8 +17,11 @@ const { sms } = require("./lib/msg");
 const { getGroupAdmins } = require("./lib/functions");
 const { File } = require("megajs");
 const { commands, replyHandlers } = require("./command");
+
+// --- 📂 Import Reply Maps & DB Functions ---
 const { lastMenuMessage } = require("./plugins/menu");
-const { connectDB, getBotSettings } = require("./plugins/bot_db");
+const { lastSettingsMessage } = require("./plugins/settings"); 
+const { connectDB, getBotSettings, updateSetting } = require("./plugins/bot_db");
 
 // --- 🛠️ JID Decoder ---
 const decodeJid = (jid) => {
@@ -30,6 +33,7 @@ const decodeJid = (jid) => {
     return jid;
 };
 
+// Global settings object
 global.CURRENT_BOT_SETTINGS = {
     botName: config.DEFAULT_BOT_NAME,
     ownerName: config.DEFAULT_OWNER_NAME,
@@ -83,7 +87,7 @@ async function connectToWA() {
         auth: state,
         version,
         syncFullHistory: true,
-        markOnlineOnConnect: true,
+        markOnlineOnConnect: false,
         generateHighQualityLinkPreview: true,
     });
 
@@ -93,6 +97,15 @@ async function connectToWA() {
             if (lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut) connectToWA();
         } else if (connection === "open") {
             console.log("✅ ZANTA-MD Connected");
+
+            // --- ⚙️ ALWAYS ONLINE LOGIC (ON/OFF) ---
+            setInterval(async () => {
+                if (global.CURRENT_BOT_SETTINGS.alwaysOnline === 'true') {
+                    await danuwa.sendPresenceUpdate('available');
+                } else {
+                    await danuwa.sendPresenceUpdate('unavailable');
+                }
+            }, 10000);
 
             const ownerJid = decodeJid(danuwa.user.id);
             await danuwa.sendMessage(ownerJid, {
@@ -119,7 +132,8 @@ async function connectToWA() {
         const mek = messages[0];
         if (!mek || !mek.message) return;
 
-        if (config.AUTO_STATUS_SEEN && mek.key.remoteJid === "status@broadcast") {
+        // Auto Status Seen
+        if (global.CURRENT_BOT_SETTINGS.autoStatusSeen === 'true' && mek.key.remoteJid === "status@broadcast") {
             await danuwa.readMessages([mek.key]);
             return;
         }
@@ -139,29 +153,27 @@ async function connectToWA() {
         const commandName = isCmd ? body.slice(prefix.length).trim().split(" ")[0].toLowerCase() : "";
         const args = body.trim().split(/ +/).slice(1);
 
-        // --- 🛡️ 100% REAL OWNER CHECK LOGIC ---
-        // 1. පණිවිඩය එවූ පුද්ගලයාගේ raw ID එක ලබා ගැනීම
+        // --- 🛡️ OWNER LOGIC ---
         const sender = mek.key.fromMe ? danuwa.user.id : (mek.key.participant || mek.key.remoteJid);
-
-        // 2. decodeJid හරහා LID එක පිරිසිදු කිරීම (94xxx@s.whatsapp.net ලෙස සකසයි)
         const decodedSender = decodeJid(sender);
         const decodedBot = decodeJid(danuwa.user.id);
-
-        // 3. අංකය පමණක් වෙන් කර ගැනීම
         const senderNumber = decodedSender.split("@")[0].replace(/[^\d]/g, '');
         const configOwner = config.OWNER_NUMBER.replace(/[^\d]/g, '');
 
-        // 4. සැබෑ Owner පරීක්ෂාව
-        // - තමාගෙන්ම එවන පණිවිඩ (fromMe)
-        // - LID අංකය බොට්ගේ LID එකට සමාන වීම (Same account on Android)
-        // - config.js හි අංකය සමඟ සැසඳීම
         const isOwner = mek.key.fromMe || 
                         sender === danuwa.user.id || 
                         decodedSender === decodedBot || 
                         senderNumber === configOwner;
 
-        if (isCmd) {
-            console.log(`[CMD] ${commandName} from ${senderNumber} | Owner: ${isOwner}`);
+        // --- ⚙️ AUTO SETTINGS ACTION ---
+        if (global.CURRENT_BOT_SETTINGS.autoRead === 'true') {
+            await danuwa.readMessages([mek.key]);
+        }
+        if (global.CURRENT_BOT_SETTINGS.autoTyping === 'true') {
+            await danuwa.sendPresenceUpdate('composing', from);
+        }
+        if (global.CURRENT_BOT_SETTINGS.autoVoice === 'true' && !mek.key.fromMe) {
+            await danuwa.sendPresenceUpdate('recording', from);
         }
 
         const botNumber2 = await jidNormalizedUser(danuwa.user.id);
@@ -174,7 +186,41 @@ async function connectToWA() {
 
         const reply = (text) => danuwa.sendMessage(from, { text }, { quoted: mek });
 
+        // --- 📩 REPLY LOGIC (MENU & SETTINGS) ---
         const isMenuReply = (m.quoted && lastMenuMessage && lastMenuMessage.get(from) === m.quoted.id);
+        const isSettingsReply = (m.quoted && lastSettingsMessage && lastSettingsMessage.get(from) === m.quoted.id);
+
+        // 1. Settings Reply Logic (Dashboard)
+        if (isSettingsReply && body && !isCmd && isOwner) {
+            const input = body.trim().split(" ");
+            const num = input[0];
+            const value = input.slice(1).join(" ");
+
+            let dbKeys = ["", "botName", "ownerName", "prefix", "autoRead", "autoTyping", "autoStatusSeen", "alwaysOnline", "readCmd", "autoVoice"];
+            let dbKey = dbKeys[parseInt(num)];
+
+            if (dbKey) {
+                let finalValue = value;
+                if (['4', '5', '6', '7', '8', '9'].includes(num)) {
+                    finalValue = (value.toLowerCase() === 'on' || value.toLowerCase() === 'true') ? 'true' : 'false';
+                }
+
+                if (!finalValue && !['4', '5', '6', '7', '8', '9'].includes(num)) {
+                    return reply("❌ කරුණාකර අංකය සමඟ අලුත් අගය ලබා දෙන්න.");
+                }
+
+                const success = await updateSetting(dbKey, finalValue);
+                if (success) {
+                    global.CURRENT_BOT_SETTINGS[dbKey] = finalValue;
+                    await reply(`✅ *${dbKey}* updated to: *${finalValue}*`);
+                    const cmd = commands.find(c => c.pattern === 'settings');
+                    if (cmd) cmd.function(danuwa, mek, m, { from, reply, isOwner, prefix });
+                    return;
+                }
+            }
+        }
+
+        // 2. Menu Reply & Command Execution
         let shouldExecuteMenu = (isMenuReply && body && !body.startsWith(prefix));
 
         if (isCmd || shouldExecuteMenu) {
@@ -183,13 +229,18 @@ async function connectToWA() {
             const cmd = commands.find(c => c.pattern === execName || (c.alias && c.alias.includes(execName)));
 
             if (cmd) {
+                // --- 👁️ FIX: READ COMMAND ONLY ---
+                if (global.CURRENT_BOT_SETTINGS.readCmd === 'true') {
+                    await danuwa.readMessages([mek.key]);
+                }
+
                 if (cmd.react) danuwa.sendMessage(from, { react: { text: cmd.react, key: mek.key } });
                 try {
                     cmd.function(danuwa, mek, m, {
                         from, quoted: mek, body, isCmd, command: execName, args: execArgs, q: execArgs.join(" "),
                         isGroup, sender, senderNumber, botNumber2, botNumber: senderNumber, pushname: mek.pushName || "User",
                         isMe: mek.key.fromMe, isOwner, groupMetadata, groupName: groupMetadata.subject, participants,
-                        groupAdmins, isBotAdmins, isAdmins, reply
+                        groupAdmins, isBotAdmins, isAdmins, reply, prefix
                     });
                 } catch (e) {
                     console.error("[ERROR]", e);
