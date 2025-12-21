@@ -2,7 +2,7 @@ const { cmd } = require("../command");
 const { updateSetting } = require("./bot_db");
 
 // 🖼️ Dashboard Image URL
-const SETTINGS_IMG = "https://github.com/Akashkavindu/ZANTA_MD/blob/main/images/settings.jpg?raw=true";
+const SETTINGS_IMG = "https://github.com/Akashkavindu/ZANTA_MD/blob/main/images/menu-new.jpg?raw=true";
 
 // 🎯 Reply හඳුනා ගැනීම සඳහා පාවිච්චි කරන Map එක
 const lastSettingsMessage = new Map();
@@ -33,11 +33,12 @@ cmd({
     statusText += `┃ 7️⃣ *Always Online:* ${settings.alwaysOnline === 'true' ? '✅ ON' : '❌ OFF'}\n`;
     statusText += `┃ 8️⃣ *Read Commands:* ${settings.readCmd === 'true' ? '✅ ON' : '❌ OFF'}\n`;
     statusText += `┃ 9️⃣ *Auto Voice:* ${settings.autoVoice === 'true' ? '✅ ON' : '❌ OFF'}\n`;
+    statusText += `┃ 🔟 *Anti Badword:* ${settings.antiBadword === 'true' ? '✅ ON' : '❌ OFF'}\n`;
     statusText += `┃\n`;
     statusText += `╰━━━━━━━━━━━━━━━┈⊷\n\n`;
     statusText += `*💡 සෙටින්ග්ස් වෙනස් කරන්නේ කෙසේද?*\n`;
     statusText += `අදාළ අංකය සහ අලුත් අගය මෙම පණිවිඩයට Reply කරන්න.\n\n`;
-    statusText += `*E.g:* \`9 on\` හෝ \`1 MyBotName\`\n`;
+    statusText += `*E.g:* \`10 on\` හෝ \`1 MyBotName\`\n`;
 
     const sentMsg = await zanta.sendMessage(from, {
         image: { url: SETTINGS_IMG },
