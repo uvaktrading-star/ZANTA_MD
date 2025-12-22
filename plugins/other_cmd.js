@@ -37,8 +37,8 @@ cmd({
 });
 
 cmd({
-    pattern: "ping",
-    alias: ["speed", "ms"],
+    pattern: "speed",
+    alias: ["system", "ms"],
     react: "⚡",
     desc: "Check bot's response speed.",
     category: "main",

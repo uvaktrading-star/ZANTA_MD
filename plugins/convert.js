@@ -62,6 +62,7 @@ cmd({
     pattern: "s",
     alias: ["sticker", "st"],
     react: "🌟",
+    desc: "Convert to sticker.",
     category: "convert",
     filename: __filename,
 }, async (zanta, mek, m, { from, reply, quoted }) => {
@@ -90,6 +91,7 @@ cmd({
 cmd({
     pattern: "toimg",
     react: "🖼️",
+    desc: "Convert to image.",
     category: "convert",
     filename: __filename,
 }, async (zanta, mek, m, { from, reply, quoted }) => {
@@ -117,6 +119,7 @@ cmd({
     pattern: "tomp3",
     alias: ["toaudio"],
     react: "🎶",
+    desc: "Convert to mp3.",
     category: "convert",
     filename: __filename,
 }, async (zanta, mek, m, { from, reply, quoted }) => {
@@ -145,6 +148,7 @@ cmd({
     pattern: "tourl",
     alias: ["url"],
     react: "🔗",
+    desc: "Convert to url.",
     category: "convert",
     filename: __filename,
 }, async (zanta, mek, m, { from, reply, quoted }) => {
@@ -167,6 +171,7 @@ cmd({
 cmd({
     pattern: "toqr",
     react: "🏁",
+    desc: "create QR Code.",
     category: "convert",
     filename: __filename,
 }, async (zanta, mek, m, { from, reply, args }) => {
@@ -183,6 +188,7 @@ cmd({
     pattern: "removebg",
     alias: ["rmbg"],
     react: "✂️",
+    desc: "Remove background",
     category: "convert",
     filename: __filename,
 }, async (zanta, mek, m, { from, reply, quoted }) => {
@@ -223,6 +229,7 @@ cmd({
     pattern: "genimg",
     alias: ["aiimg", "draw"],
     react: "🎨",
+    desc: "create AI Images.",
     category: "media",
     filename: __filename,
 }, async (zanta, mek, m, { from, reply, args }) => {
@@ -308,7 +315,7 @@ cmd({
     pattern: "art",
     alias: ["styletext", "ascii"],
     react: "🎨",
-    desc: "Convert text into ASCII art symbols (Max 6 letters).",
+    desc: "Convert text into ASCII art symbols.",
     category: "convert",
     filename: __filename,
 }, async (zanta, mek, m, { from, reply, q }) => {

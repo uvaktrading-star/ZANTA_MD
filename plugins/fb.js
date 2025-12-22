@@ -5,7 +5,7 @@ cmd({
     pattern: "fb",
     alias: ["facebook"],
     react: "📥",
-    desc: "Download Facebook Videos with Image Caption Edit.",
+    desc: "Download Facebook Videos.",
     category: "download",
     filename: __filename,
 }, async (zanta, mek, m, { from, reply, q }) => {
